@@ -19,6 +19,8 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using SimpleWebApp.Areas.Identity.Data;
+using SimpleWebApp.Interfaces;
+using SimpleWebApp.Repositories;
 
 namespace SimpleWebApp.Areas.Identity.Pages.Account
 {
@@ -30,13 +32,15 @@ namespace SimpleWebApp.Areas.Identity.Pages.Account
         private readonly IUserEmailStore<AppUser> _emailStore;
         private readonly ILogger<RegisterModel> _logger;
         private readonly IEmailSender _emailSender;
+        private readonly IEmailConfirmSender _emailConfirmSender;
 
         public RegisterModel(
             UserManager<AppUser> userManager,
             IUserStore<AppUser> userStore,
             SignInManager<AppUser> signInManager,
             ILogger<RegisterModel> logger,
-            IEmailSender emailSender)
+            IEmailSender emailSender, 
+            IEmailConfirmSender emailConfirmSender)
         {
             _userManager = userManager;
             _userStore = userStore;
@@ -44,6 +48,7 @@ namespace SimpleWebApp.Areas.Identity.Pages.Account
             _signInManager = signInManager;
             _logger = logger;
             _emailSender = emailSender;
+            _emailConfirmSender = emailConfirmSender;
         }
 
         /// <summary>
@@ -131,10 +136,16 @@ namespace SimpleWebApp.Areas.Identity.Pages.Account
                         pageHandler: null,
                         values: new { area = "Identity", userId = userId, code = code, returnUrl = returnUrl },
                         protocol: Request.Scheme);
+                    
+                    var emailResp = await _emailConfirmSender.SendEmailConfirmAsync(Input.Email, HtmlEncoder.Default.Encode(callbackUrl));
 
-                    await _emailSender.SendEmailAsync(Input.Email, "Confirm your email",
-                        $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
-
+                    if (emailResp.IsError)
+                    {
+                        _logger.LogError(emailResp.Exception, emailResp.Message);
+                        ModelState.AddModelError(string.Empty, "There was a problem while trying to send Email, contact support!");
+                        return Page(); 
+                    }
+                    
                     if (_userManager.Options.SignIn.RequireConfirmedAccount)
                     {
                         return RedirectToPage("RegisterConfirmation", new { email = Input.Email, returnUrl = returnUrl });
