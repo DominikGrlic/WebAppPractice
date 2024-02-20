@@ -1,0 +1,25 @@
+﻿@model IEnumerable<UserViewModel>
+@using SimpleWebApp.Models
+
+@inject UserManager<AppUser> _userManager;
+
+<h1 class="text font-monospace">All Users</h1>
+<table class="table table-dark table-hover font-monospace">
+    <tr class="text-center">
+        <th>ID</th>
+        <th>User name</th>
+        <th>User role</th>
+        @* <th>Email</th> *@
+    </tr>
+    @foreach (var user in Model)
+    {
+        <tr class="text-center">
+            <td>@user.User.Id</td>
+            <td>@user.User.UserName</td>
+            <td>@string.Join(", ", user.Roles)</td>
+        </tr>
+    }
+</table>
+<a class="btn btn-dark" type="button" asp-area="" asp-controller="Home" asp-action="Index">
+    Go back
+</a>

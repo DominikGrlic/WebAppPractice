@@ -1,0 +1,24 @@
+@using SimpleWebApp.Areas.Identity.Data
+@using Microsoft.AspNetCore.Identity
+
+@inject SignInManager<AppUser> SignInManager;
+@inject UserManager<AppUser> UserManager;
+
+@if(
+    SignInManager.IsSignedIn(User) &&
+    await UserManager.IsInRoleAsync(
+        UserManager.GetUserAsync(User).Result,
+        "Admin")
+)
+{
+    <div class="dropdown">
+        <a class="btn nav-link dropdown-toggle text-info" id="dropdownAdmin" data-bs-toggle ="dropdown">Admin panel</a>
+        <ul class="dropdown-menu bg-dark">
+            <li>
+                <a class="dropdown-item bg-dark text-white" type="button" asp-area="Admin" asp-controller="Admin" asp-action="Index">
+                    User manager
+                </a>
+            </li>
+        </ul>
+    </div>
+}

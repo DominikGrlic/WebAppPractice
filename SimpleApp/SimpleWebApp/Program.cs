@@ -12,11 +12,17 @@ namespace SimpleWebApp
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
-            var connectionString = builder.Configuration.GetConnectionString("Default") ?? throw new InvalidOperationException("Connection string 'Default' not found.");
+            var connectionString = builder.Configuration.GetConnectionString(
+                "Default") ?? throw new InvalidOperationException(
+                "Connection string 'Default' not found.");
 
             builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connectionString));
 
-            builder.Services.AddDefaultIdentity<AppUser>(options => options.SignIn.RequireConfirmedAccount = true).AddEntityFrameworkStores<AppDbContext>();
+            builder.Services.AddDefaultIdentity<AppUser>(
+                options => options.SignIn.RequireConfirmedAccount = true)
+                .AddRoles<IdentityRole>()
+                .AddEntityFrameworkStores<AppDbContext>();
+            
             
             // configuration for reading settings
             var config = new ConfigurationBuilder()
@@ -38,6 +44,7 @@ namespace SimpleWebApp
 
             var app = builder.Build();
 
+            
             // Configure the HTTP request pipeline.
             if (!app.Environment.IsDevelopment())
             {
@@ -53,6 +60,12 @@ namespace SimpleWebApp
 
             app.UseAuthentication();
             app.UseAuthorization();
+
+            app.MapAreaControllerRoute(
+                name: "Admin",
+                areaName: "Admin",
+                pattern: "Admin/{controller}/{action}/{id?}"
+                );
 
             app.MapControllerRoute(
                 name: "default",

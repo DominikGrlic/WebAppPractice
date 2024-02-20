@@ -72,4 +72,56 @@ public class EmailConfirmSender : IEmailConfirmSender
             };
         }
     }
+
+    public async Task<bool> SendEmailPassResetAsync(string userEmail, string link)
+    {
+        try
+        {
+            var mimeMessage = new MimeMessage()
+            {
+                Sender = MailboxAddress.Parse(_emailConfiguration.Email),
+                From = { new MailboxAddress(Encoding.UTF8, _emailConfiguration.DisplayName, _emailConfiguration.Email) },
+                Priority = MessagePriority.Urgent,
+                Date = DateTimeOffset.UtcNow,
+                Subject = "Password reset",
+                To = { MailboxAddress.Parse(userEmail) }
+            };
+
+            var multipart = new Multipart("mixed");
+
+            var htmlContent = await EmailHelper.GeneratePasswordReset(userEmail, link);
+
+            var body = new TextPart(TextFormat.Html)
+            {
+                Text = htmlContent
+            };
+
+            multipart.Add(body);
+            mimeMessage.Body = multipart;
+
+            using var client = new SmtpClient();
+            client.ServerCertificateValidationCallback += (sender, x, y, z) =>
+            {
+                return true;
+            };
+
+            await client.ConnectAsync(_emailConfiguration.Host, _emailConfiguration.Port);
+            await client.AuthenticateAsync(_emailConfiguration.Email, _emailConfiguration.Password);
+
+            var response = await client.SendAsync(mimeMessage);
+
+            Console.WriteLine(response);
+
+            await client.DisconnectAsync(true);
+            return true;
+
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            return false;
+            
+        }
+
+    }
 }

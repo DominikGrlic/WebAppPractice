@@ -2,25 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 #nullable disable
 
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
 using System.Text;
 using System.Text.Encodings.Web;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
-using Microsoft.Extensions.Logging;
 using SimpleWebApp.Areas.Identity.Data;
 using SimpleWebApp.Interfaces;
-using SimpleWebApp.Repositories;
 
 namespace SimpleWebApp.Areas.Identity.Pages.Account
 {
@@ -31,24 +22,24 @@ namespace SimpleWebApp.Areas.Identity.Pages.Account
         private readonly IUserStore<AppUser> _userStore;
         private readonly IUserEmailStore<AppUser> _emailStore;
         private readonly ILogger<RegisterModel> _logger;
-        private readonly IEmailSender _emailSender;
         private readonly IEmailConfirmSender _emailConfirmSender;
+        private readonly RoleManager<IdentityRole> _roleManager;
 
         public RegisterModel(
             UserManager<AppUser> userManager,
             IUserStore<AppUser> userStore,
             SignInManager<AppUser> signInManager,
             ILogger<RegisterModel> logger,
-            IEmailSender emailSender, 
-            IEmailConfirmSender emailConfirmSender)
+            IEmailConfirmSender emailConfirmSender, 
+            RoleManager<IdentityRole> roleManager)
         {
             _userManager = userManager;
             _userStore = userStore;
             _emailStore = GetEmailStore();
             _signInManager = signInManager;
             _logger = logger;
-            _emailSender = emailSender;
             _emailConfirmSender = emailConfirmSender;
+            _roleManager = roleManager;
         }
 
         /// <summary>
@@ -126,6 +117,13 @@ namespace SimpleWebApp.Areas.Identity.Pages.Account
 
                 if (result.Succeeded)
                 {
+                    var userRole = _roleManager.FindByNameAsync("User").Result;
+
+                    if (userRole != null)
+                    {
+                        await _userManager.AddToRoleAsync(user, userRole.Name);
+                    }
+                    
                     _logger.LogInformation("User created a new account with password.");
 
                     var userId = await _userManager.GetUserIdAsync(user);

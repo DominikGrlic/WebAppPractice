@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SimpleWebApp.Areas.Identity.Data;
 
@@ -11,9 +12,11 @@ using SimpleWebApp.Areas.Identity.Data;
 namespace SimpleWebApp.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240218204727_UserRolesDataSeed")]
+    partial class UserRolesDataSeed
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -249,15 +252,15 @@ namespace SimpleWebApp.Migrations
                         {
                             Id = "d6b6e5a5-8fd9-465d-b043-ace7d30878f7",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "a9937ea6-a94a-4195-8c40-054ade59cc62",
+                            ConcurrencyStamp = "649d9ef1-8355-4680-97fc-982f3a81d176",
                             Email = "admin@admin.com",
-                            EmailConfirmed = true,
+                            EmailConfirmed = false,
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@ADMIN.COM",
                             NormalizedUserName = "ADMIN@ADMIN.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEGtQKF1qCeg84GFA9qCqF0QxdO2ONQk9oa9ZIMb5IDoYUyoiaMk+d75o05ySWSy8CA==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEKZBijdpKJad/W/BPFuVIY1NUQyFAhxGeQsVaCIWWySRRGi7DIWVacbrtfYdQJjJRw==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "9647ed26-7e22-4e3c-8947-bd3447fd425d",
+                            SecurityStamp = "45143cd8-8522-4f28-b1aa-ebaad507989f",
                             TwoFactorEnabled = false,
                             UserName = "admin@admin.com"
                         });
