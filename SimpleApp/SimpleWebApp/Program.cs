@@ -4,6 +4,8 @@ using SimpleWebApp.Areas.Identity.Data;
 using SimpleWebApp.Interfaces;
 using SimpleWebApp.Models;
 using SimpleWebApp.Repositories;
+using Microsoft.AspNetCore.Authentication.Google;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace SimpleWebApp
 {
@@ -12,6 +14,7 @@ namespace SimpleWebApp
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+            
             var connectionString = builder.Configuration.GetConnectionString(
                 "Default") ?? throw new InvalidOperationException(
                 "Connection string 'Default' not found.");
@@ -38,8 +41,20 @@ namespace SimpleWebApp
             builder.Services.Configure<EmailConfiguration>(config.GetSection("EmailSettings"));
 
             builder.Services.AddScoped<IEmailConfirmSender, EmailConfirmSender>();
+
+            // google authentication configuration
+            builder.Services.AddAuthentication(options =>
+                {
+                    options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                    options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
+                })
+                .AddCookie()
+                .AddGoogle(GoogleDefaults.AuthenticationScheme, options =>
+                {
+                    options.ClientId = builder.Configuration.GetSection("GoogleKeys:ClientId").Value;
+                    options.ClientSecret = builder.Configuration.GetSection("GoogleKeys:ClientSecret").Value;
+                });
             
-            builder.Services.AddAuthentication();
             builder.Services.AddAuthorization();
 
             var app = builder.Build();

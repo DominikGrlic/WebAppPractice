@@ -4,6 +4,8 @@
 
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -100,6 +102,11 @@ namespace SimpleWebApp.Areas.Identity.Pages.Account
             returnUrl ??= Url.Content("~/");
 
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
+            
+            // await HttpContext.ChallengeAsync(GoogleDefaults.AuthenticationScheme, new AuthenticationProperties(
+            // {
+            //     RedirectUri = Url.Action("GoogleResponse")
+            // }));
 
             if (ModelState.IsValid)
             {
@@ -126,6 +133,19 @@ namespace SimpleWebApp.Areas.Identity.Pages.Account
                     return Page();
                 }
             }
+
+            // async Task<IActionResult> GoogleResponse()
+            // {
+            //     var result = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            //
+            //     var claims = result.Principal.Identities.FirstOrDefault().Claims.Select(claim => new
+            //     {
+            //         claim.Issuer,
+            //         claim.OriginalIssuer,
+            //         claim.Type,
+            //         claim.Value
+            //     });
+            // }
 
             // If we got this far, something failed, redisplay form
             return Page();
