@@ -11,14 +11,13 @@ namespace SimpleWebApp.Areas.Admin.Controllers;
 public class AdminController : Controller
 {
     // TODO: make authorized admin panel showing list of users!
-
-
     private readonly UserManager<AppUser> _userManager;
 
     public AdminController(UserManager<AppUser> userManager)
     {
-        _userManager = userManager; 
+        _userManager = userManager;
     }
+
 
     public async Task<IActionResult> Index()
     {
@@ -35,6 +34,8 @@ public class AdminController : Controller
         }
 
         return View(userViewModels);
+
+
     }
 
 

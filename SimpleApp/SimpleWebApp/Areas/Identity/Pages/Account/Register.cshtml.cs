@@ -136,7 +136,7 @@ namespace SimpleWebApp.Areas.Identity.Pages.Account
                         protocol: Request.Scheme);
                     
                     var emailResp = await _emailConfirmSender.SendEmailConfirmAsync(Input.Email, HtmlEncoder.Default.Encode(callbackUrl));
-
+  
                     if (emailResp.IsError)
                     {
                         _logger.LogError(emailResp.Exception, emailResp.Message);

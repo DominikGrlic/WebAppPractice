@@ -13,6 +13,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
 using SimpleWebApp.Areas.Identity.Data;
+using SimpleWebApp.Interfaces;
+using SimpleWebApp.Repositories;
 
 namespace SimpleWebApp.Areas.Identity.Pages.Account
 {
@@ -25,13 +27,17 @@ namespace SimpleWebApp.Areas.Identity.Pages.Account
         private readonly IUserEmailStore<AppUser> _emailStore;
         private readonly IEmailSender _emailSender;
         private readonly ILogger<ExternalLoginModel> _logger;
+        private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly IEmailConfirmSender _emailConfirmSender;
 
         public ExternalLoginModel(
             SignInManager<AppUser> signInManager,
             UserManager<AppUser> userManager,
             IUserStore<AppUser> userStore,
             ILogger<ExternalLoginModel> logger,
-            IEmailSender emailSender)
+            IEmailSender emailSender, 
+            RoleManager<IdentityRole> roleManager, 
+            IEmailConfirmSender emailConfirmSender)
         {
             _signInManager = signInManager;
             _userManager = userManager;
@@ -39,6 +45,8 @@ namespace SimpleWebApp.Areas.Identity.Pages.Account
             _emailStore = GetEmailStore();
             _logger = logger;
             _emailSender = emailSender;
+            _roleManager = roleManager;
+            _emailConfirmSender = emailConfirmSender;
         }
 
         /// <summary>
@@ -159,6 +167,13 @@ namespace SimpleWebApp.Areas.Identity.Pages.Account
                     if (result.Succeeded)
                     {
                         _logger.LogInformation("User created an account using {Name} provider.", info.LoginProvider);
+                        
+                        var userRole = _roleManager.FindByNameAsync("User").Result;
+
+                        if (userRole != null)
+                        {
+                            await _userManager.AddToRoleAsync(user, userRole.Name);
+                        }
 
                         var userId = await _userManager.GetUserIdAsync(user);
                         var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
@@ -168,10 +183,16 @@ namespace SimpleWebApp.Areas.Identity.Pages.Account
                             pageHandler: null,
                             values: new { area = "Identity", userId = userId, code = code },
                             protocol: Request.Scheme);
+                        
+                        var emailResp = await _emailConfirmSender.SendEmailConfirmAsync(Input.Email, HtmlEncoder.Default.Encode(callbackUrl));
 
-                        await _emailSender.SendEmailAsync(Input.Email, "Confirm your email",
-                            $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
-
+                        if (emailResp.IsError)
+                        {
+                            _logger.LogError(emailResp.Exception, emailResp.Message);
+                            ModelState.AddModelError(string.Empty, "There was a problem while trying to send confirmation Email, contact support!");
+                            return Page();
+                        }
+                        
                         // If account confirmation is required, we need to show the link if we don't have a real email sender
                         if (_userManager.Options.SignIn.RequireConfirmedAccount)
                         {

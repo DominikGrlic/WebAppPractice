@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using SimpleWebApp.Models;
 using System.Diagnostics;
+using Microsoft.AspNetCore.Authorization;
 
 namespace SimpleWebApp.Controllers
 {
@@ -18,6 +19,7 @@ namespace SimpleWebApp.Controllers
             return View();
         }
 
+        [Authorize]
         public IActionResult Privacy()
         {
             return View();
