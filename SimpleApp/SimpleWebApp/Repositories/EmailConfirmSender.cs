@@ -11,17 +11,16 @@ namespace SimpleWebApp.Repositories;
 public class EmailConfirmSender : IEmailConfirmSender
 {
     private readonly EmailConfiguration _emailConfiguration;
-    
+
     public EmailConfirmSender(IOptions<EmailConfiguration> config)
     {
         _emailConfiguration = config.Value;
     }
-    
+
     public async Task<BaseResponse> SendEmailConfirmAsync(string userEmail, string link)
     {
         try
         {
-
             var mimeMessage = new MimeMessage()
             {
                 Sender = MailboxAddress.Parse(_emailConfiguration.Email),
@@ -32,16 +31,16 @@ public class EmailConfirmSender : IEmailConfirmSender
                 Subject = "Confirm you email address!"
             };
 
-            
+
             var multipart = new Multipart("mixed");
-            
+
             var htmlContent = await EmailHelper.GenerateConfirmEmail(userEmail, link);
-            
+
             var body = new TextPart(TextFormat.Html)
             {
                 Text = htmlContent
             };
-            
+
             multipart.Add(body);
             mimeMessage.Body = multipart;
 
@@ -51,16 +50,13 @@ public class EmailConfirmSender : IEmailConfirmSender
 
             var response = await client.SendAsync(mimeMessage);
 
-            await client.DisconnectAsync(true);
-            
+            //await client.DisconnectAsync(true);
+
             return new BaseResponse()
             {
                 IsError = !response.Contains("Ok"),
-                Message = response,
-
+                Message = response
             };
-
-
         }
         catch (Exception e)
         {
@@ -120,8 +116,6 @@ public class EmailConfirmSender : IEmailConfirmSender
         {
             Console.WriteLine(e);
             return false;
-            
         }
-
     }
 }

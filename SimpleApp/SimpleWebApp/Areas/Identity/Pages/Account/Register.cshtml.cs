@@ -30,7 +30,7 @@ namespace SimpleWebApp.Areas.Identity.Pages.Account
             IUserStore<AppUser> userStore,
             SignInManager<AppUser> signInManager,
             ILogger<RegisterModel> logger,
-            IEmailConfirmSender emailConfirmSender, 
+            IEmailConfirmSender emailConfirmSender,
             RoleManager<IdentityRole> roleManager)
         {
             _userManager = userManager;
@@ -123,7 +123,7 @@ namespace SimpleWebApp.Areas.Identity.Pages.Account
                     {
                         await _userManager.AddToRoleAsync(user, userRole.Name);
                     }
-                    
+
                     _logger.LogInformation("User created a new account with password.");
 
                     var userId = await _userManager.GetUserIdAsync(user);
@@ -132,18 +132,20 @@ namespace SimpleWebApp.Areas.Identity.Pages.Account
                     var callbackUrl = Url.Page(
                         "/Account/ConfirmEmail",
                         pageHandler: null,
-                        values: new { area = "Identity", userId = userId, code = code, returnUrl = returnUrl },
+                        values: new { area = "Identity", userId, code, returnUrl },
                         protocol: Request.Scheme);
-                    
-                    var emailResp = await _emailConfirmSender.SendEmailConfirmAsync(Input.Email, HtmlEncoder.Default.Encode(callbackUrl));
-  
+
+                    var link = HtmlEncoder.Default.Encode(callbackUrl);
+
+                    var emailResp = await _emailConfirmSender.SendEmailConfirmAsync(Input.Email, link);
+
                     if (emailResp.IsError)
                     {
                         _logger.LogError(emailResp.Exception, emailResp.Message);
                         ModelState.AddModelError(string.Empty, "There was a problem while trying to send Email, contact support!");
-                        return Page(); 
+                        return Page();
                     }
-                    
+
                     if (_userManager.Options.SignIn.RequireConfirmedAccount)
                     {
                         return RedirectToPage("RegisterConfirmation", new { email = Input.Email, returnUrl = returnUrl });

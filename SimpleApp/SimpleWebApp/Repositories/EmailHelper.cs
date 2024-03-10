@@ -11,7 +11,7 @@ public static class EmailHelper
 
         return content
             .Replace("{{USERNAME}}", userName)
-            .Replace("{{RESET_LINK}}", link)
+            .Replace("{{LINK}}", link)
             .Replace("{{CURRENT_YEAR}}", DateTime.UtcNow.Year.ToString());
     }
 
