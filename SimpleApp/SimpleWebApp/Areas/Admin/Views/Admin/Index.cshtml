@@ -36,7 +36,7 @@
             <td>@user.User.UserName</td>
             <td>@string.Join(", ", user.Roles)</td>
             <td>
-                <a class="btn btn-secondary" asp-action="Update" asp-route-id="@user.User.Id"></a>
+                <a class="btn btn-secondary" asp-action="Update" asp-route-id="@user.User.Id">Update</a>
             </td>
         </tr>
     }
