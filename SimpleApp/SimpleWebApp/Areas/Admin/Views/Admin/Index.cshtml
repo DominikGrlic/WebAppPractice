@@ -1,7 +1,25 @@
-﻿@model IEnumerable<UserViewModel>
+﻿@model List<UserViewModel>
 @using SimpleWebApp.Models
 
 @inject UserManager<AppUser> _userManager;
+
+<form method="get" asp-area="Admin" asp-controller="Admin" asp-action="Index" class="row mb-5">
+    <div class="col-6">
+        <input type="text" class="form-control" name="srchTab" />
+    </div>
+    <div class="col-4">
+        <select class="form-select" name="roleTab">
+            <option value="0">Filter by role</option>
+            <option value="1">Admins</option>
+            <option value="2">Users</option>
+            <option value="3">A - Z</option>
+            <option value="4">z - A</option>
+        </select>
+    </div>
+    <div class="col-2">
+        <input type="submit" class="btn btn-warning" value="Search" />
+    </div>
+</form>
 
 <h1 class="text font-monospace">All Users</h1>
 <table class="table table-dark table-hover font-monospace">
@@ -9,7 +27,7 @@
         <th>ID</th>
         <th>User name</th>
         <th>User role</th>
-        @* <th>Email</th> *@
+        <th>Actions</th>
     </tr>
     @foreach (var user in Model)
     {
@@ -17,6 +35,9 @@
             <td>@user.User.Id</td>
             <td>@user.User.UserName</td>
             <td>@string.Join(", ", user.Roles)</td>
+            <td>
+                <a class="btn btn-secondary" asp-action="Update" asp-route-id="@user.User.Id"></a>
+            </td>
         </tr>
     }
 </table>

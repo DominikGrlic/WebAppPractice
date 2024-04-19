@@ -18,7 +18,7 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
-    "https": {
+    "SimpleApp": {
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": true,

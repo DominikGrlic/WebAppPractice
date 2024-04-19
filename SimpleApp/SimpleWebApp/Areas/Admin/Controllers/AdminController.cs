@@ -12,27 +12,112 @@ public class AdminController : Controller
 {
     // TODO: make authorized admin panel showing list of users!
     private readonly UserManager<AppUser> _userManager;
+    private readonly RoleManager<IdentityRole> _roleManager;
+    private readonly AppDbContext _appDbContext;
 
-    public AdminController(UserManager<AppUser> userManager)
+    public AdminController(UserManager<AppUser> userManager, RoleManager<IdentityRole> roleManager, AppDbContext context)
     {
         _userManager = userManager;
+        _roleManager = roleManager;
+        _appDbContext = context;
     }
 
 
-    public async Task<IActionResult> Index()
+    public IActionResult Index(string? srchTab, int roleTab = 0)
     {
-        var userViewModels = new List<UserViewModel>();
-        var users = _userManager.Users.ToList();
-        foreach (var user in users)
+        var model = _userManager.Users.ToList().Select(user =>
         {
-            var roles = await _userManager.GetRolesAsync(user);
-            userViewModels.Add(new UserViewModel
-            {
-                User = user,
-                Roles = roles
-            });
+            var roles = _userManager.GetRolesAsync(user).GetAwaiter().GetResult();
+
+            return new UserViewModel { Roles = roles, User = user };
+
+        }).ToList();
+
+        if (!string.IsNullOrEmpty(srchTab))
+        {
+            model = model.Where(a => a.User.UserName.ToLower().Contains(srchTab.ToLower())).ToList();
         }
 
-        return View(userViewModels);
+        switch (roleTab)
+        {
+            case 1: model = model.Where(a => a.Roles.Contains("Admin")).ToList(); break;
+            case 2: model = model.Where(a => a.Roles.Contains("User")).ToList(); break;
+            case 3: model = model.OrderBy(a => a.User.UserName).ToList(); break;
+            case 4: model = model.OrderByDescending(a => a.User.UserName).ToList(); break;
+        }
+
+        return View(model);
+    }
+
+    //GET: Admin/Edit/5
+    public async Task<IActionResult> Update(string id)
+    {
+        AppUser user = await _userManager.FindByIdAsync(id);
+
+        if (user == null)
+        {
+            return RedirectToAction("Index");
+        }
+        else
+        {
+            return View(user);
+        }
+    }
+
+    //POST: Admin/Edit/5
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Update(string id, int roles)
+    {
+        AppUser user = await _userManager.FindByIdAsync(id);
+
+        if (user != null)
+        {
+            if (roles != 0)
+            {
+                if (roles == 1)
+                {
+                    await _userManager.RemoveFromRoleAsync(user, "Admin");
+                    await _userManager.AddToRoleAsync(user, "User");
+                }
+
+                else if (roles == 2)
+                {
+                    await _userManager.RemoveFromRoleAsync(user, "User");
+                    await _userManager.AddToRoleAsync(user, "Admin");
+                }
+
+                else
+                {
+                    ModelState.AddModelError("", "User role can't be recognised");
+                }
+            }
+            else
+            {
+                ModelState.AddModelError("", "Invalid user role");
+            }
+
+            var result = await _userManager.UpdateAsync(user);
+
+            if (result.Succeeded)
+            {
+                return RedirectToAction("Index");
+            }
+            else
+            {
+                foreach (IdentityError error in result.Errors)
+                {
+                    ModelState.AddModelError("", error.Description);
+                }
+            }
+        }
+
+        else
+        {
+            ModelState.AddModelError("", "User not found!");
+        }
+
+        return View(user);
+
     }
 }

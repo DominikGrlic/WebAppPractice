@@ -1,0 +1,25 @@
+﻿@model SimpleWebApp.Areas.Identity.Data.AppUser
+
+@using Microsoft.AspNetCore.Identity
+@using SimpleWebApp.Areas.Identity.Data
+
+@inject UserManager<AppUser> _userManager
+
+
+@{
+    ViewData["Title"] = "UPDATE USER";
+}
+
+<h1 class="font-monospace">Update user</h1>
+<a asp-action="Index" class="btn btn-secondary font-monospace">Back</a>
+<form asp-action="Update" method="post">
+    <div class="form-group font-monospace">
+        <select class="form-select form-select-sm" aria-label=".form-select-sm example" name="roles">
+            <option value="0">Pick a role</option>
+            <option value="1">User</option>
+            <option value="2">Admin</option>
+        </select>
+    </div>
+    <hr />
+    <button type="submit" class="btn btn-primary font-monospace">Save</button>
+</form>
