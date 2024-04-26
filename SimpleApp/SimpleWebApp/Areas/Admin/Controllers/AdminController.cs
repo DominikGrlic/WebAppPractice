@@ -120,4 +120,44 @@ public class AdminController : Controller
         return View(user);
 
     }
+
+    // GET: Admin/Create
+    public IActionResult Create()
+    {
+        return View();
+    }
+
+    // POST: Admin/Create
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Create(UserViewModel user)
+    {
+        if (ModelState.IsValid)
+        {
+            AppUser appUser = new AppUser
+            {
+                UserName = user.Email,
+                Email = user.Email
+            };
+
+            var result = await _userManager.CreateAsync(appUser, user.Password);
+            await _appDbContext.SaveChangesAsync();
+
+            if (result.Succeeded)
+            {
+                return RedirectToAction("Index");
+            }
+            else
+            {
+                foreach (var error in result.Errors)
+                {
+                    ModelState.AddModelError(string.Empty, error.Description);
+                }
+            }
+        }
+
+        //return PartialView("_CreateUserModal", user);
+        return View("Index");
+    }
+
 }

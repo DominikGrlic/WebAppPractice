@@ -1,0 +1,39 @@
+﻿@* @model SimpleWebApp.Models.User
+
+<!-- Button trigger modal -->
+<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#userCreateModal">
+    Create New User
+</button>
+
+<!-- Modal -->
+<div class="modal fade" id="userCreateModal" tabindex="-1" aria-labelledby="userCreateModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="userCreateModalLabel">Create New User</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" asp-action="CreateUser" asp-controller="User">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="username" class="col-form-label">Username:</label>
+                        <input type="text" class="form-control" id="username" name="Username" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="col-form-label">Email:</label>
+                        <input type="email" class="form-control" id="email" name="Email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="col-form-label">Password:</label>
+                        <input type="password" class="form-control" id="password" name="Password" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Save User</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+ *@

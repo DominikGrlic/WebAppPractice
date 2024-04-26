@@ -3,9 +3,48 @@
 
 @inject UserManager<AppUser> _userManager;
 
+<!-- Button trigger modal -->
+<button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#userCreateModal">
+    Create a new user
+</button>
+
+<hr />
+
+<!-- Modal -->
+<div class="modal fade" id="userCreateModal" tabindex="-1" aria-labelledby="userCreateModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="userCreateModalLabel">Create New User</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" asp-action="Create" asp-controller="Admin">
+                <div class="modal-body">
+                    @* <div class="mb-3">
+                        <label for="username" class="col-form-label">Username:</label>
+                        <input type="text" class="form-control" id="username" name="Username" required>
+                    </div> *@
+                    <div class="mb-3">
+                        <label for="email" class="col-form-label">Email:</label>
+                        <input type="email" class="form-control" id="email" name="Email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="col-form-label">Password:</label>
+                        <input type="password" class="form-control" id="password" name="Password" required>
+                    </div>
+                </div>
+            </form>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="submit" class="btn btn-primary">Save user</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <form method="get" asp-area="Admin" asp-controller="Admin" asp-action="Index" class="row mb-5">
     <div class="col-6">
-        <input type="text" class="form-control" name="srchTab" />
+        <input type="text" class="form-control" placeholder="Type to search..." name="srchTab" />
     </div>
     <div class="col-4">
         <select class="form-select" name="roleTab">
