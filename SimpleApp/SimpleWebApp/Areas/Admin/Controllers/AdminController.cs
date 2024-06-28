@@ -1,8 +1,11 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 using SimpleWebApp.Areas.Identity.Data;
 using SimpleWebApp.Models;
+using SimpleWebApp.Models.Forms;
 
 namespace SimpleWebApp.Areas.Admin.Controllers;
 
@@ -14,16 +17,18 @@ public class AdminController : Controller
     private readonly UserManager<AppUser> _userManager;
     private readonly RoleManager<IdentityRole> _roleManager;
     private readonly AppDbContext _appDbContext;
+    private readonly SignInManager<AppUser> _signInManager;
 
-    public AdminController(UserManager<AppUser> userManager, RoleManager<IdentityRole> roleManager, AppDbContext context)
+    public AdminController(UserManager<AppUser> userManager, RoleManager<IdentityRole> roleManager, AppDbContext context, SignInManager<AppUser> signInManager)
     {
         _userManager = userManager;
         _roleManager = roleManager;
         _appDbContext = context;
+        _signInManager = signInManager;
     }
 
 
-    public IActionResult Index(string? srchTab, int roleTab = 0)
+    public async Task<IActionResult> Index(string? srchTab, int roleTab = 0)
     {
         var model = _userManager.Users.ToList().Select(user =>
         {
@@ -46,79 +51,74 @@ public class AdminController : Controller
             case 4: model = model.OrderByDescending(a => a.User.UserName).ToList(); break;
         }
 
+        ViewBag.SrchTab = srchTab;
+
+        var roles = await _roleManager.Roles.ToListAsync();
+
+        ViewBag.Roles = new SelectList(roles, "Name", "Name");
+
         return View(model);
     }
 
     //GET: Admin/Edit/5
     public async Task<IActionResult> Update(string id)
     {
-        AppUser user = await _userManager.FindByIdAsync(id);
+        var user = await _userManager.FindByIdAsync(id);
 
         if (user == null)
         {
-            return RedirectToAction("Index");
+            RedirectToAction(nameof(Index));
         }
-        else
+
+        var roles = await _roleManager.Roles.ToListAsync();
+        var userRoles = await _userManager.GetRolesAsync(user!);
+
+        ViewBag.Roles = new SelectList(roles, "Name", "Name", userRoles.First());
+
+        var model = new EditUserForm()
         {
-            return View(user);
-        }
+            Id = user!.Id,
+            Email = user.Email!,
+        };
+
+        return user is null ? RedirectToAction(nameof(Index)) : View(model);
     }
 
     //POST: Admin/Edit/5
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Update(string id, int roles)
+    public async Task<IActionResult> Update(EditUserForm form)
     {
-        AppUser user = await _userManager.FindByIdAsync(id);
-
-        if (user != null)
+        if (!ModelState.IsValid)
         {
-            if (roles != 0)
-            {
-                if (roles == 1)
-                {
-                    await _userManager.RemoveFromRoleAsync(user, "Admin");
-                    await _userManager.AddToRoleAsync(user, "User");
-                }
-
-                else if (roles == 2)
-                {
-                    await _userManager.RemoveFromRoleAsync(user, "User");
-                    await _userManager.AddToRoleAsync(user, "Admin");
-                }
-
-                else
-                {
-                    ModelState.AddModelError("", "User role can't be recognised");
-                }
-            }
-            else
-            {
-                ModelState.AddModelError("", "Invalid user role");
-            }
-
-            var result = await _userManager.UpdateAsync(user);
-
-            if (result.Succeeded)
-            {
-                return RedirectToAction("Index");
-            }
-            else
-            {
-                foreach (IdentityError error in result.Errors)
-                {
-                    ModelState.AddModelError("", error.Description);
-                }
-            }
+            return View(form);
         }
 
-        else
+        var user = await _userManager.FindByIdAsync(form.Id!);
+
+        if (user == null)
         {
-            ModelState.AddModelError("", "User not found!");
+            // RARE ERROR
+            return RedirectToAction(nameof(Index));
         }
 
-        return View(user);
+        var userRoles = await _userManager.GetRolesAsync(user);
 
+        if (user.Email != form.Email)
+        {
+            user.UserName = form.Email;
+            user.Email = form.Email;
+
+            await _userManager.UpdateAsync(user);
+        }
+
+        await _userManager.RemoveFromRolesAsync(user, userRoles);
+
+        await _userManager.AddToRoleAsync(user, form.Role);
+
+        //await _signInManager.RefreshSignInAsync(user);
+
+        return RedirectToAction(nameof(Index));
     }
 
     // GET: Admin/Create
@@ -130,22 +130,36 @@ public class AdminController : Controller
     // POST: Admin/Create
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(UserViewModel user)
+    public async Task<IActionResult> Create(NewUserInputModel model)
     {
         if (ModelState.IsValid)
         {
             AppUser appUser = new AppUser
             {
-                UserName = user.Email,
-                Email = user.Email
+                UserName = model.Email,
+                Email = model.Email
             };
 
-            var result = await _userManager.CreateAsync(appUser, user.Password);
+            var result = await _userManager.CreateAsync(appUser, model.Password);
             await _appDbContext.SaveChangesAsync();
 
             if (result.Succeeded)
             {
-                return RedirectToAction("Index");
+                var selectedRole = await _roleManager.FindByNameAsync(model.Role);
+
+                if (selectedRole is null)
+                {
+                    //TODO: IF ROLE DONT EXIST (RARE ERROR) SHOW ERROR
+                }
+
+                var resp = await _userManager.AddToRoleAsync(appUser, selectedRole!.Name!);
+
+                if (!resp.Succeeded)
+                {
+                    //TODO: SHOW ERRORS
+                }
+
+                return RedirectToAction(nameof(Index));
             }
             else
             {
@@ -157,7 +171,8 @@ public class AdminController : Controller
         }
 
         //return PartialView("_CreateUserModal", user);
-        return View("Index");
+        return RedirectToAction(nameof(Index));
     }
+
 
 }
