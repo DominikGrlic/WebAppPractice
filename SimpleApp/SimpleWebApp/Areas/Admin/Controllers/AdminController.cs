@@ -81,7 +81,7 @@ public class AdminController : Controller
             Email = user.Email!,
         };
 
-        return user is null ? RedirectToAction(nameof(Index)) : View(model);
+        return /*user is null ? RedirectToAction(nameof(Index)) : */ PartialView("_userUpdateModal", model) /*View(model)*/;
     }
 
     //POST: Admin/Edit/5
@@ -115,8 +115,6 @@ public class AdminController : Controller
         await _userManager.RemoveFromRolesAsync(user, userRoles);
 
         await _userManager.AddToRoleAsync(user, form.Role);
-
-        //await _signInManager.RefreshSignInAsync(user);
 
         return RedirectToAction(nameof(Index));
     }
