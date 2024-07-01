@@ -66,32 +66,30 @@
 </form>
 
 <h1 class="text font-monospace">All Users</h1>
-<table class="table table-dark table-hover font-monospace">
+<table id="usersTable" class="table table-dark font-monospace display">
     <thead>
-        <tr>
-            <th>
-
-            </th>
+        <tr class="text-center">
+            <th>ID</th>
+            <th>User email</th>
+            <th>User role</th>
+            <th>Actions</th>
         </tr>
     </thead>
-    <tr class="text-center">
-        <th>ID</th>
-        <th>User email</th>
-        <th>User role</th>
-        <th>Actions</th>
-    </tr>
-    @foreach (var user in Model)
-    {
-        <tr class="text-center">
-            <td>@user.User.Id</td>
-            <td>@user.User.Email</td>
-            <td>@string.Join(", ", user.Roles)</td>
-            <td>
-                <a class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#userUpdateModal" data-user-id="@user.User.Id">Update</a>
-            </td>
-        </tr>
-    }
+    <tbody>
+        @foreach (var user in Model)
+        {
+            <tr class="text-center">
+                <td>@user.User.Id</td>
+                <td>@user.User.Email</td>
+                <td>@string.Join(", ", user.Roles)</td>
+                <td>
+                    <a class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#userUpdateModal" data-user-id="@user.User.Id">Update</a>
+                </td>
+            </tr>
+        }
+    </tbody>
 </table>
+<p></p>
 <a class="btn btn-dark" type="button" asp-area="" asp-controller="Home" asp-action="Index">
     Go back
 </a>
@@ -118,6 +116,12 @@
         // Ensure to hide and remove the modal content when it's closed
         $(document).on('hidden.bs.modal', '#userUpdateModal', function () {
             $("#updateUserModalContainer").empty();
+        });
+    </script>
+    <!-- Data table function-->
+    <script>
+        $(document).ready(function () {
+            $('#usersTable').DataTable();
         });
     </script>
 }
