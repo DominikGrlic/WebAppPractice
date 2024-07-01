@@ -121,7 +121,10 @@
     <!-- Data table function-->
     <script>
         $(document).ready(function () {
-            $('#usersTable').DataTable();
+            $('#usersTable').DataTable({
+                searching: false,
+                lengthChange: false
+            });
         });
     </script>
 }
